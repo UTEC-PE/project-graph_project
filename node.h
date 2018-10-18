@@ -4,7 +4,7 @@
 #include <SFML/Window.hpp>
 #include <string>
 
-
+#include <iostream>
 
 template <typename G>
 class Node:public sf::CircleShape 
@@ -22,7 +22,7 @@ class Node:public sf::CircleShape
         
 
         Node(N data,double posX = 0, double posY = 0,sf::Vector2f window_size = sf::Vector2f(800,600),sf::Vector2f max = sf::Vector2f(50,50)):
-            data(data),posX(posX),posY(posY), indegree(0), outdegree(0)
+            data(data),posX(posX),posY(posY), indegree(0), outdegree(0), dir(false)
         {
             this->setRadius(20);
             this->setPosition(sf::Vector2f(posX*window_size.x/max.x,posY*window_size.y/max.y));
@@ -42,34 +42,123 @@ class Node:public sf::CircleShape
 
         void addEdge(edge* connection)
         {
+            if(isConnectedTo(connection->nodes[1]->getData()))
+                throw "gg";   
+            dir = connection->getDir();                
             edges.push_back(connection);
             outdegree++;
         }
 
-        edge* getLightestEdge()
+        void removeEdge(N to, bool &dir)
         {
-            if(edges.size() == 0)
+            edge* to_remove;
+            if(isConnectedTo(to,to_remove))
             {
-                return NULL;
+                dir = to_remove->getDir();
+                to_remove->nodes[1]->indegree--;
+                outdegree--;
+                
+                int index = getConnectionIndex(to);
+                
+                edges.erase(edges.begin()+index);
+                delete to_remove;
+                
             }
-
-            edge* lightest = edges[0];
-            E min = lightest->getData();
-            for (int i = 1; i < edges.size(); i++)
-            {
-
-                if (edges[i]->getData() < min)
-                {
-                    min = edges[i]->getData();
-                    lightest = edges[i];
-                }
-            }
-            return lightest;
+            return;
         }
 
-        int degree()
+        void removeEdge(N to)
         {
-            return edges.size(); 
+            edge* to_remove;
+            if(isConnectedTo(to,to_remove))
+            {
+                to_remove->nodes[1]->indegree--;
+                outdegree--;
+                
+                int index = getConnectionIndex(to);
+                
+                edges.erase(edges.begin()+index);
+                delete to_remove;
+                
+            }
+            return;
+        }
+
+        void clearEdges()
+        {
+            edge* temp;
+            for(int i = 0; i < edges.size(); i++)
+            {
+                 temp = edges[i];
+                 edges[i] = NULL;
+                 delete temp;
+            }
+            edges.clear();
+        }
+
+        void printEdges()
+        {
+            //std::cout << "================"<<std::endl;
+            for(int i = 0; i < edges.size(); i++)
+            {
+                std::cout  << " " << edges[i]->nodes[1]->getData();
+            }
+            std::cout << std::endl;
+        }
+
+        int getConnectionIndex(N data)
+        {
+            for(int i = 0; i < edges.size();i++)
+            {
+                if(edges[i]->nodes[1]->getData() == data)
+                    return i;
+            }
+            throw "Couldn't find connection";
+        }
+
+        bool isConnectedTo(N data)
+        {
+            for(int i = 0; i < edges.size();i++)
+            {
+                if (edges[i]->nodes[1]->getData() == data)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        bool isConnectedTo(N data, edge *&search)
+        {
+            for(int i = 0; i < edges.size();i++)
+            {
+                if (edges[i]->nodes[1]->getData() == data)
+                {
+                    search = edges[i];
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        //return index
+        int findEdge(N to)
+        {
+            for(int i = 0; i < edges.size(); i++)
+            {
+                if(edges[i]->nodes[1]->getData() == to)
+                {
+                    return i;
+                } 
+            }
+        }
+
+
+        int getDegree()
+        {
+            if(!dir)
+                return edges.size();
+            return indegree + outdegree; 
         }
 
         std::string type()
@@ -111,6 +200,7 @@ class Node:public sf::CircleShape
         N data;
         double posX;
         double posY;
+        bool dir;
 
         sf::Font font;
         sf::Text text;
