@@ -9,8 +9,6 @@ class Edge {
         typedef typename G::E E;
         typedef typename G::node node;
 
-
-
         Edge(node* from, node* to,E weight, bool dir = true):
         	data(weight),
         	dir(dir)
