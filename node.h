@@ -19,8 +19,18 @@ class Node:public sf::CircleShape
         EdgeSeq edges;
         int outdegree;
         int indegree;
-        
 
+    private:
+        N data;
+        double posX;
+        double posY;
+        bool dir;
+
+        sf::Font font;
+        sf::Text text;
+
+    public:
+        
         Node(N data,double posX = 0, double posY = 0,sf::Vector2f window_size = sf::Vector2f(800,600),sf::Vector2f max = sf::Vector2f(50,50)):
             data(data),posX(posX),posY(posY), indegree(0), outdegree(0), dir(false)
         {
@@ -40,13 +50,51 @@ class Node:public sf::CircleShape
             text.setPosition(sf::Vector2f(getPosition().x-getRadius()/2,getPosition().y-getRadius()/2));
         }
 
+        N getData(){return data;}
+        double getPosX(){return posX;}
+        double getPosY(){return posY;}
+
+        int getDegree()
+        {
+            if(!dir)
+                return edges.size();
+            return indegree + outdegree; 
+        }
+
+
+        void printEdges()
+        {
+            for(int i = 0; i < edges.size(); i++)
+            {
+                std::cout  << " " << edges[i]->nodes[1]->getData();
+            }
+            std::cout << std::endl;
+        }
+
         void addEdge(edge* connection)
         {
             if(isConnectedTo(connection->nodes[1]->getData()))
-                throw "gg";   
+                throw "Can't add edge";   
             dir = connection->getDir();                
             edges.push_back(connection);
             outdegree++;
+        }
+
+        void removeEdge(N to)
+        {
+            edge* to_remove;
+            if(isConnectedTo(to,to_remove))
+            {
+                to_remove->nodes[1]->indegree--;
+                outdegree--;
+                
+                int index = getConnectionIndex(to);
+                
+                edges.erase(edges.begin()+index);
+                delete to_remove;
+                
+            }
+            return;
         }
 
         void removeEdge(N to, bool &dir)
@@ -67,22 +115,6 @@ class Node:public sf::CircleShape
             return;
         }
 
-        void removeEdge(N to)
-        {
-            edge* to_remove;
-            if(isConnectedTo(to,to_remove))
-            {
-                to_remove->nodes[1]->indegree--;
-                outdegree--;
-                
-                int index = getConnectionIndex(to);
-                
-                edges.erase(edges.begin()+index);
-                delete to_remove;
-                
-            }
-            return;
-        }
 
         void clearEdges()
         {
@@ -96,15 +128,7 @@ class Node:public sf::CircleShape
             edges.clear();
         }
 
-        void printEdges()
-        {
-            //std::cout << "================"<<std::endl;
-            for(int i = 0; i < edges.size(); i++)
-            {
-                std::cout  << " " << edges[i]->nodes[1]->getData();
-            }
-            std::cout << std::endl;
-        }
+        
 
         int getConnectionIndex(N data)
         {
@@ -115,6 +139,7 @@ class Node:public sf::CircleShape
             }
             throw "Couldn't find connection";
         }
+
 
         bool isConnectedTo(N data)
         {
@@ -139,26 +164,6 @@ class Node:public sf::CircleShape
                 }
             }
             return false;
-        }
-
-        //return index
-        int findEdge(N to)
-        {
-            for(int i = 0; i < edges.size(); i++)
-            {
-                if(edges[i]->nodes[1]->getData() == to)
-                {
-                    return i;
-                } 
-            }
-        }
-
-
-        int getDegree()
-        {
-            if(!dir)
-                return edges.size();
-            return indegree + outdegree; 
         }
 
         std::string type()
@@ -193,17 +198,7 @@ class Node:public sf::CircleShape
             window.draw(text);
         }
 
-        N getData(){return data;}
-        double getPosX(){return posX;}
-        double getPosY(){return posY;}
-    private:
-        N data;
-        double posX;
-        double posY;
-        bool dir;
-
-        sf::Font font;
-        sf::Text text;
+    
 };
 
 #endif

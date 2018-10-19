@@ -10,7 +10,6 @@ int main(int argc, char *argv[]) {
 	srand((unsigned)time(0));
     Graph<Traits> a;
     a.read("graph1.txt");
-    a.test();
     
     a.print();
     a.isBipartite(true);

@@ -8,6 +8,17 @@ class Edge {
     public:
         typedef typename G::E E;
         typedef typename G::node node;
+        node* nodes[2];
+
+    private:
+        E data;
+        bool dir;
+
+        sf::Font font;
+        sf::Text text;
+        sf::Vertex line[2];
+
+    public:
 
         Edge(node* from, node* to,E weight, bool dir = true):
         	data(weight),
@@ -33,10 +44,6 @@ class Edge {
             text.setPosition(sf::Vector2f((line[0].position.x+line[1].position.x)/2,(line[0].position.y+line[1].position.y)/2));
         }
 
-        sf::Vertex line[2];
-
-        node* nodes[2];
-
         E getData(){return data;}
         bool getDir(){return dir;}
 
@@ -45,13 +52,6 @@ class Edge {
             window.draw(line,2,sf::Lines);
             window.draw(text);
         }
-
-    private:
-        E data;
-        bool dir;
-
-        sf::Font font;
-        sf::Text text;
 };
 
 #endif

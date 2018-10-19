@@ -25,9 +25,6 @@ class Traits {
 		typedef int E;
 };
 
-
-//TODO: strongly connected, prim unconnected graphs
-
 template <typename Tr>
 class Graph {
     public:
@@ -41,7 +38,16 @@ class Graph {
         typedef typename NodeSeq::iterator NodeIte;
         typedef typename EdgeSeq::iterator EdgeIte;
 
+    private:
+        
+        NodeIte ni;
+        bool directed;
+        int numberOfEdges;
+        sf::Font font;
+        sf::Text text;
         NodeSeq nodes;
+
+    public:
 
         Graph():
             directed(false),
@@ -60,6 +66,9 @@ class Graph {
             text.setPosition(sf::Vector2f(10,10));
         };
 
+
+
+
         float getDensity()
         {
             float density = numberOfEdges/((nodes.size()*(nodes.size()-1)));
@@ -72,6 +81,8 @@ class Graph {
         {
             return getDensity>limit;
         }
+
+
 
 
         bool find_node(N value)
@@ -103,23 +114,6 @@ class Graph {
             }
             return false;
         }
-
-        bool find_edge(N from, N to)
-        {  
-            node* node1;
-            if(find_node(from,node1))
-                return node1->isConnectedTo(to);
-            return false;
-        }
-
-        bool find_edge(N from, N to, edge *&search)
-        {  
-            node* node1;
-            if(find_node(from,node1))
-                return node1->isConnectedTo(to,search);
-            return false;
-        }
-
 
         //add a new node
         void insert(N value, double posX, double posY, bool warning = true)
@@ -154,6 +148,26 @@ class Graph {
             nodes.erase(nodes.begin()+index);
             delete to_remove;
         }   
+
+
+
+
+
+        bool find_edge(N from, N to)
+        {  
+            node* node1;
+            if(find_node(from,node1))
+                return node1->isConnectedTo(to);
+            return false;
+        }
+
+        bool find_edge(N from, N to, edge *&search)
+        {  
+            node* node1;
+            if(find_node(from,node1))
+                return node1->isConnectedTo(to,search);
+            return false;
+        }
 
         //add new edges
         void add_edge(N from, N to,E weight, bool dir,bool warning = true)
@@ -194,6 +208,11 @@ class Graph {
             }
             throw "Couldn't find node";
         }
+
+
+
+
+
 
         edge* getLightestEdge(NodeSeq visited={},NodeSeq base={})
         {
@@ -236,6 +255,7 @@ class Graph {
                 return NULL;
             return lightest;
         }
+
 
 
 
@@ -321,7 +341,8 @@ class Graph {
             return kruskal_graph;
         }
 
-        //kruskal startng at random
+
+        //prim starting in random vertex
         Graph<Tr> prim()
         {
             int start = rand()%nodes.size();
@@ -389,6 +410,11 @@ class Graph {
         }
 
 
+
+
+
+
+
         Graph<Tr> dfs(N value)
         {
             node* current_node;
@@ -431,6 +457,11 @@ class Graph {
                     dfs_recursiveFunction(current_node,current_node->edges[i]->nodes[1],visited,dfs_graph);   
             }
         }
+
+
+
+
+
 
         Graph<Tr> bfs(N value)
         {
@@ -486,6 +517,9 @@ class Graph {
             if(!complete)
                 bfs_recursiveFunction(new_current_nodes,visited,bfs_graph);
         }
+
+
+
 
 
         bool isBipartite(bool apply_color=false)
@@ -616,6 +650,9 @@ class Graph {
         }
 
 
+
+
+
         void draw()
         {
             sf::RenderWindow window(sf::VideoMode(window_size.x,window_size.y), "Graph Drawing");
@@ -698,20 +735,8 @@ class Graph {
 
 
 
-        void test()
-        {
-            //cout << areConnected(nodes[0],nodes[5]) << endl; 
-        }
-
 
     private:
-        
-        NodeIte ni;
-        bool directed;
-        int numberOfEdges;
-        sf::Font font;
-        sf::Text text;
-
         int getNodeIndex(N value)
         {
             for(int i = 0; i < nodes.size(); i++)
