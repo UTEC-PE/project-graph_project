@@ -71,7 +71,7 @@ class Graph {
 
         float getDensity()
         {
-            float density = numberOfEdges/((nodes.size()*(nodes.size()-1)));
+            float density = (float)numberOfEdges/(float)((nodes.size()*(nodes.size()-1)));
             if(!directed)
                 density *= 2;
             return density;
@@ -79,7 +79,7 @@ class Graph {
 
         bool isDense(float limit)
         {
-            return getDensity>limit;
+            return (getDensity() > limit);
         }
 
 
@@ -179,12 +179,12 @@ class Graph {
             if(find_node(from,firstNode) && find_node(to,secondNode))
             {
                 edge* newEdge = new edge(firstNode,secondNode,weight,dir);
-                firstNode->addEdge(newEdge);
+                firstNode->addEdge(newEdge,warning);
                 secondNode-> indegree++;
                 if (!dir)
                 {
                     edge* newEdge2 = new edge(secondNode,firstNode,weight,dir);
-                    secondNode->addEdge(newEdge2);
+                    secondNode->addEdge(newEdge2,warning);
                     firstNode-> indegree++;
                 }
                 numberOfEdges++;
@@ -650,6 +650,30 @@ class Graph {
         }
 
 
+        bool isStronglyConnected()
+        {
+            Graph<Tr> sc_graph;
+            sc_graph.text.setString("Inverted");
+            for(int i = 0; i < nodes.size(); i++)
+            {
+                sc_graph.insert(nodes[i]->getData(),nodes[i]->getPosX(),nodes[i]->getPosY());
+            }
+
+            for(int i = 0; i < nodes.size(); i++)
+            {
+                for(int j = 0; j < nodes[i]->edges.size(); j++)
+                {
+                    edge *current_edge = nodes[i]->edges[j];
+                    node *node_from = current_edge->nodes[0];
+                    node *node_to = current_edge->nodes[1];
+                    sc_graph.add_edge(node_to->getData(),node_from->getData(),current_edge->getData(),current_edge->getDir(),false);
+                }
+            }
+
+            if(sc_graph.dfs(0).nodes.size() != sc_graph.nodes.size())
+                return false;
+            return true;
+        }
 
 
 

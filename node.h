@@ -71,10 +71,14 @@ class Node:public sf::CircleShape
             std::cout << std::endl;
         }
 
-        void addEdge(edge* connection)
+        void addEdge(edge* connection,bool warning = true)
         {
             if(isConnectedTo(connection->nodes[1]->getData()))
-                throw "Can't add edge";   
+            {
+                if(warning)
+                    throw "Can't add edge";
+                return;
+            }   
             dir = connection->getDir();                
             edges.push_back(connection);
             outdegree++;
