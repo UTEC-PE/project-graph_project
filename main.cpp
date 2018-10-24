@@ -10,7 +10,7 @@ using namespace std;
 int main(int argc, char *argv[]) {
 	srand((unsigned)time(0));
     Graph<Traits> a;
-    a.read("graph1.txt");
+    a.read("graph3.txt");
     
     std::cout<< "Density: " << a.getDensity() << endl;
 
@@ -23,9 +23,15 @@ int main(int argc, char *argv[]) {
     a.draw();
 
     cout << "Is strongly connected(1 = yes)? : " << a.isStronglyConnected() << endl;
-    a.prim(0).draw();
-    a.kruskal().draw();
+    
+    if(!a.directed)
+    {
+        a.prim(0).draw();
+        a.kruskal().draw();
+    }
+
     a.dfs(0).draw();
+    a.dfs(0).print();
     a.bfs(0).draw();
     return EXIT_SUCCESS;
 }

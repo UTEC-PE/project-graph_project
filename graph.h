@@ -41,7 +41,6 @@ class Graph {
     private:
         
         NodeIte ni;
-        bool directed;
         int numberOfEdges;
         sf::Font font;
         sf::Text text;
@@ -49,6 +48,7 @@ class Graph {
 
     public:
 
+        bool directed;
         Graph():
             directed(false),
             numberOfEdges(0)
@@ -435,15 +435,15 @@ class Graph {
             if(current_node->edges.size() == 0)
                 return dfs_graph;
 
-            dfs_recursiveFunction(current_node,current_node->edges[0]->nodes[1],visited,dfs_graph);
+            for(int i = 0; i < current_node->edges.size();i++)
+                dfs_recursiveFunction(current_node,current_node->edges[0]->nodes[1],visited,dfs_graph);
             return dfs_graph;
         }
 
 
         void dfs_recursiveFunction(node *previous_node,node *current_node, NodeSeq &visited, Graph<Tr> &dfs_graph)
         {
-            if(current_node->edges.size() == 0)
-                return;
+
             if(std::find(visited.begin(), visited.end(), current_node) == visited.end())
             {
                 dfs_graph.insert(current_node->getData(),current_node->getPosX(),current_node->getPosY(),false);
@@ -453,6 +453,11 @@ class Graph {
 
                 dfs_graph.add_edge(previous_node->getData(),current_node->getData(),old_edge->getData(),old_edge->getDir(),false);
                 visited.push_back(current_node);
+                
+                if(current_node->edges.size() == 0)
+                    return;
+
+
                 for(int i = 0; i < current_node->edges.size();i++)
                     dfs_recursiveFunction(current_node,current_node->edges[i]->nodes[1],visited,dfs_graph);   
             }
@@ -670,9 +675,12 @@ class Graph {
                 }
             }
 
-            if(sc_graph.dfs(0).nodes.size() != sc_graph.nodes.size())
-                return false;
-            return true;
+            for(int i = 0; i < nodes.size();i++)
+            {
+                if(sc_graph.dfs(nodes[i]->getData()).nodes.size() == sc_graph.nodes.size())
+                    return true;
+            }
+            return false;
         }
 
 
