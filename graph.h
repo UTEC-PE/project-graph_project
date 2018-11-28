@@ -9,11 +9,11 @@
 #include <algorithm>
 #include <stdlib.h>
 #include <map>
-
+#include <iomanip>
 #include "node.h"
 #include "edge.h"
 
-
+#define INFINITE 999
 
 using namespace std;
 
@@ -768,6 +768,387 @@ class Graph {
 
 
 
+        Graph<Tr> greedy_bfs(N value, N end)
+        {
+            int index = getNodeIndex(value);
+            NodeSeq visited; visited.reserve(nodes.size());
+            Graph<Tr> greedy_bfs_graph;
+
+            greedy_bfs_graph.text.setString("Greedy BFS");
+
+            edge* current = NULL;
+            greedy_bfs_graph.insert(nodes[index]->getData(),nodes[index]->getPosX(),nodes[index]->getPosY());
+            visited.push_back(nodes[index]);
+            
+            NodeSeq path;
+
+            while(nodes.size()>greedy_bfs_graph.nodes.size())
+            {
+
+                current = getLightestEdge(visited,visited);
+
+                if(current == NULL)
+                    break;
+
+                greedy_bfs_graph.insert(current->nodes[0]->getData(),current->nodes[0]->getPosX(),current->nodes[0]->getPosY(),false);
+                greedy_bfs_graph.insert(current->nodes[1]->getData(),current->nodes[1]->getPosX(),current->nodes[1]->getPosY(),false);
+                greedy_bfs_graph.add_edge(current->nodes[0]->getData(),current->nodes[1]->getData(),current->getData(),current->getDir());
+             
+                if(current->nodes[0]->getData() == value)
+                {    
+                    path.clear();
+                    path.push_back(current->nodes[0]);
+                }
+
+                path.push_back(current->nodes[1]);
+
+                if(current->nodes[1]->getData() == end)
+                    break;
+
+                if(std::find(visited.begin(), visited.end(), current->nodes[0]) == visited.end())
+                    visited.push_back(current->nodes[0]);
+                if(std::find(visited.begin(), visited.end(), current->nodes[1]) == visited.end())
+                    visited.push_back(current->nodes[1]);
+            }
+            
+            cout <<endl << "Greedy BFS:"<<endl;
+            for(int i = 0; i < path.size();i++)
+            {
+                cout << path[i]->getData() << " ";
+            }
+            cout << endl;
+            return greedy_bfs_graph;
+        }
+
+
+        E getWeightBetween(int start, int end)
+        {
+            if(start == end)
+                return 0;
+            edge* search;
+            if(find_edge(start,end,search))
+            {
+                return search->getData();
+            }
+            return INFINITE;
+        }
+
+        vector<vector<int>> floyd_warshall()
+        {
+            vector<int> infinites(nodes.size(),INFINITE);
+            
+            vector<vector<int>> directPaths;
+            vector<vector<int>> path;
+            for(int i = 0; i < nodes.size();i++)
+            {
+                directPaths.push_back(infinites);
+                
+                for(int j = 0;j < nodes.size();j++)
+                {
+                    directPaths[i][j] = getWeightBetween(i,j);
+                }
+                path.push_back(directPaths[i]);
+            }
+
+
+
+            for(int i = 0; i < nodes.size(); i++)
+            {
+                for(int j = 0; j < nodes.size(); j++)
+                {
+                    for(int k = 0; k < nodes.size(); k++)
+                    {
+                        int distance = path[j][i] + path[i][k];
+                        if(path[j][k] > distance )
+                        {
+                            path[j][k] = distance;    
+                        }
+                    }
+                }
+            }            
+
+            //print
+            cout << endl << "Floyd Warshall Matrix 1:" << endl;
+            cout << setw(2)<<" ";
+            cout << "|";
+                
+            for(int i = 0; i < directPaths.size();i++)
+            {
+                cout << setw(3) << i<< " "; 
+            }
+            cout << endl;
+            for(int i = 0; i < directPaths.size();i++)
+            {
+                cout << setw(2) << i;
+                cout << "|";
+                for(int j = 0; j < directPaths[i].size();j++)
+                {
+                    if(directPaths[i][j] == INFINITE)
+                    {
+                        cout<< setw(3) << -1 << " ";
+                        continue;    
+                    }
+                    cout<< setw(3) << directPaths[i][j] << " ";
+                }
+                cout << endl;
+            }
+
+
+
+            cout << endl << "Floyd Warshall Matrix 2:" << endl;
+            cout << setw(2)<<" ";
+            cout << "|";
+                
+            for(int i = 0; i < path.size();i++)
+            {
+                cout << setw(3) << i<< " "; 
+            }
+            cout << endl;
+            for(int i = 0; i < path.size();i++)
+            {
+                cout << setw(2) << i;
+                cout << "|";
+                for(int j = 0; j < path[i].size();j++)
+                {
+                    if(path[i][j] == INFINITE)
+                    {
+                        cout<< setw(3) << -1 << " ";
+                        continue;    
+                    }
+                    cout<< setw(3) << path[i][j] << " ";
+                }
+                cout << endl;
+            }
+
+            return path;
+
+        }
+
+        edge* getLightestEdgeDjikstra(map<N,E> distances,NodeSeq visited={},NodeSeq base={})
+        {
+            if(base.size() == 0)
+                return NULL;
+
+            edge* lightest=NULL;
+            edge* current_edge=NULL;
+            E min = INFINITE+1;
+
+            bool empty = true;
+
+            for(int i = 0; i < base.size(); i++)
+            {
+                if(base[i]->edges.size() == 0)
+                    continue;
+
+                int relativeDist = distances[base[i]->getData()];
+
+                for(int j = 0; j < base[i]->edges.size();j++)
+                {
+                    empty = false;
+                    current_edge = base[i]->edges[j];
+                
+                    //if node has no edges
+                    if(current_edge == NULL)
+                        continue;
+
+                    //if edge weight is smaller at leaste the node it goes to or comes from is not in visited
+                    else if(current_edge->getData()+relativeDist < min && 
+                        (std::find(visited.begin(), visited.end(), current_edge->nodes[1]) == visited.end() ||
+                        std::find(visited.begin(), visited.end(), base[i]) == visited.end()))
+                    {
+                        min = current_edge->getData();
+                        lightest = current_edge;
+                    }
+                
+                }
+            }
+
+            if(empty)
+                return NULL;
+            return lightest;
+        }
+
+        map<N,E> Djikstra(N start)
+        {
+            map<N,E> distances;
+
+            for(int i = 0; i < nodes.size();i++)
+            {
+                distances[nodes[i]->getData()] = INFINITE;
+            }
+
+            distances[start] = 0;
+
+            map<N,bool> visited;
+            for(int i = 0; i < nodes.size();i++)
+            {
+                visited[nodes[i]->getData()] = false;
+            }
+            int number_visited = 0;
+
+            vector<node*> visitedVect;
+
+            node* first;
+            find_node(start,first);
+
+            node* current = first;
+
+            for(int i = 0; i < current->edges.size();i++)
+            {
+                int second_data = current->edges[i]->nodes[1]->getData();
+                if(distances[second_data] == INFINITE)
+                {
+                    distances[second_data] = distances[current->getData()] + current->edges[i]->getData();   
+                }
+            }
+            visited[current->getData()] = true;
+            number_visited++;
+            visitedVect.push_back(first);
+
+            while(number_visited != nodes.size())
+            {
+                edge* currentLightest = getLightestEdgeDjikstra(distances,visitedVect,visitedVect);
+                if( currentLightest == NULL)
+                {
+                    break;
+                }
+
+                current = currentLightest->nodes[1];
+                for(int i = 0; i < current->edges.size();i++)
+                {
+                    int second_data = current->edges[i]->nodes[1]->getData();
+                    if(distances[second_data] == INFINITE)
+                    {
+                        distances[second_data] = distances[current->getData()] + current->edges[i]->getData();   
+                    }
+                    else if(distances[second_data] > distances[current->getData()] + current->edges[i]->getData())
+                    {
+                        distances[second_data] = distances[current->getData()] + current->edges[i]->getData();   
+                    }
+                }
+                visited[current->getData()] = true;
+                visitedVect.push_back(current);
+                number_visited++;
+            }
+
+
+            //print
+            cout << endl << "Djikstra:" << endl;
+            for(int i = 0; i < nodes.size(); i++)
+            {
+                cout << setw(2) << i;
+                cout << "|";
+                if(distances[i] == INFINITE)
+                {
+                    cout << -1 << endl;
+                    continue;    
+                }
+                cout << distances[i] << endl;
+
+            }
+
+            return distances;
+        }
+
+
+        map<N,E> bellmanFord(N start)
+        {
+            cout << endl;
+            map<N,E> distances;
+
+            for(int i = 0; i < nodes.size();i++)
+            {
+                distances[nodes[i]->getData()] = INFINITE;
+            }
+
+            distances[start] = 0;
+
+            //repeat V-1 times
+            for(int i = 0; i < nodes.size()-1;i++)
+            {
+                //for every edge
+                for(int j = 0; j < nodes.size();j++)
+                {
+                    for(int k = 0;k < nodes[j]->edges.size();k++)
+                    {
+                        edge* currentEdge = nodes[j]->edges[k];
+                        
+                        node* nodeFrom = currentEdge->nodes[0];
+                        node* nodeTo = currentEdge->nodes[1];
+
+                        if(distances[nodeFrom->getData()] + currentEdge->getData() < distances[nodeTo->getData()])
+                        {
+                            distances[nodeTo->getData()] =  distances[nodeFrom->getData()] + currentEdge->getData();
+                        }
+                    }
+                }
+            }
+
+
+            for(int j = 0; j < nodes.size();j++)
+                {
+                    for(int k = 0;k < nodes[j]->edges.size();k++)
+                    {
+                        edge* currentEdge = nodes[j]->edges[k];
+                        
+                        node* nodeFrom = currentEdge->nodes[0];
+                        node* nodeTo = currentEdge->nodes[1];
+
+                        if(distances[nodeFrom->getData()] + currentEdge->getData() < distances[nodeTo->getData()])
+                        {
+                            cout << "ERROR: negative weight cycle"; 
+                        }
+                    }
+                }
+
+
+            //print
+            cout << endl << "Bellman Ford:" << endl;
+            for(int i = 0; i < nodes.size(); i++)
+            {
+                cout << setw(2) << i;
+                cout << "|";
+                if(distances[i] == INFINITE)
+                {
+                    cout << -1 << endl;
+                    continue;    
+                }
+                cout << distances[i] << endl;
+
+            }
+            return distances;
+        }
+
+
+        void Aast(N start, N end)
+        {
+            node* first;
+            find_node(start,first);
+
+            node* last;
+            find_node(end,last);
+
+            vector<N> open;
+            vector<N> closed;
+
+            map <N,double> heuristic;
+            for(int i = 0; i < nodes.size();i++)
+            {
+                heuristic[nodes[i]->getData()] = sqrt(2*(nodes[i]->getPosX()-last->getPosX())+2*(nodes[i]->getPosY()-last->getPosY()));
+            }
+
+            cout<< endl << "A *: " << endl;
+            cout<< endl << "heuristic: " << endl;
+            for(int i = 0; i < nodes.size();i++)
+            {
+                cout << nodes[i]->getData() << " " << heuristic[nodes[i]->getData()];
+                cout << endl;
+            }
+            
+
+        }
+
+
     private:
         int getNodeIndex(N value)
         {
@@ -813,6 +1194,16 @@ class Graph {
                     searchConnectionTo(current_node->edges[i]->nodes[1],visited,search,answer);   
             }
         }
+
+
+
+
+
+
+
+
+
+
         
 };
 

@@ -10,14 +10,14 @@ using namespace std;
 int main(int argc, char *argv[]) {
 	srand((unsigned)time(0));
     Graph<Traits> a;
-    a.read("graph3.txt");
+    a.read("grafo3.txt");
     
-    std::cout<< "Density: " << a.getDensity() << endl;
+    //std::cout<< "Density: " << a.getDensity() << endl;
 
     a.print();
     
     a.draw();
-
+    /*
     //will color nodes acording to the set it would belong if it was bipartite
     cout << "Is bipartite(1 = yes)? : "<< a.isBipartite(true)<< endl;
     a.draw();
@@ -28,10 +28,18 @@ int main(int argc, char *argv[]) {
     {
         a.prim(0).draw();
         a.kruskal().draw();
-    }
+    }*/
 
-    a.dfs(0).draw();
+    a.greedy_bfs(1,5).draw();
+    
+    a.floyd_warshall();
+    a.Djikstra(0);
+    /*a.dfs(5).draw();
     a.dfs(0).print();
-    a.bfs(0).draw();
+    a.bfs(5).draw();*/
+
+    a.bellmanFord(0);
+    a.Aast(0,1);
+
     return EXIT_SUCCESS;
 }
