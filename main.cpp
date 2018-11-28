@@ -39,7 +39,7 @@ int main(int argc, char *argv[]) {
     a.bfs(5).draw();*/
 
     a.bellmanFord(0);
-    a.Aast(0,1);
+    a.a_star(0,5);
 
     return EXIT_SUCCESS;
 }

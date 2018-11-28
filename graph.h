@@ -1119,8 +1119,19 @@ class Graph {
             return distances;
         }
 
+        vector<N> buildPath(map<N,N> cameFrom, N current)
+        {
+            vector<N> path; 
+            path.push_back(current);
+            while ( cameFrom.find(current) != cameFrom.end() )
+            {
+                current = cameFrom[current];
+                path.push_back(current);
+            }
+            return path;
+        }
 
-        void Aast(N start, N end)
+        vector<N> a_star(N start, N end)
         {
             node* first;
             find_node(start,first);
@@ -1130,21 +1141,100 @@ class Graph {
 
             vector<N> open;
             vector<N> closed;
+            map<N,N> cameFrom;
+
+            open.push_back(start);
+
+
+            vector<vector<E>>distanceFW = floyd_warshall();
+
+            map<N,double> valorG;
+            for(int i = 0; i < nodes.size();i++)
+            {
+                valorG[nodes[i]->getData()] = INFINITE;
+            }
+            valorG[start] = 0;
+
+
 
             map <N,double> heuristic;
             for(int i = 0; i < nodes.size();i++)
             {
-                heuristic[nodes[i]->getData()] = sqrt(2*(nodes[i]->getPosX()-last->getPosX())+2*(nodes[i]->getPosY()-last->getPosY()));
+                //heuristic[nodes[i]->getData()] = sqrt(2*(nodes[i]->getPosX()-last->getPosX())+2*(nodes[i]->getPosY()-last->getPosY()));
+                heuristic[nodes[i]->getData()] = distanceFW[nodes[i]->getData()][end];
             }
 
             cout<< endl << "A *: " << endl;
             cout<< endl << "heuristic: " << endl;
+
+
             for(int i = 0; i < nodes.size();i++)
             {
                 cout << nodes[i]->getData() << " " << heuristic[nodes[i]->getData()];
                 cout << endl;
             }
             
+            map<N,double> valorF;
+            for(int i = 0; i < nodes.size();i++)
+            {
+                valorF[nodes[i]->getData()] = INFINITE;
+            }
+            valorF[start] = heuristic[start];
+
+
+            while (open.size() > 0)
+            {
+                N current = getKeywithMin(valorF,open);
+                if (current == end)
+                {
+                    vector<N> path = buildPath(cameFrom,current);
+
+                    for(int i = 0; i< path.size();i++)
+                    {
+                        cout << path[path.size()-1-i] << " ";
+                    } 
+                    cout << endl;
+                    return path;
+                    
+                }
+
+
+                open.erase(std::remove(open.begin(), open.end(), current), open.end());
+                closed.push_back(current);
+
+                node* currentNode;
+                find_node(current,currentNode);
+
+                for(int i = 0; i < currentNode->edges.size();i++)
+                {
+                    node* neighbour = currentNode->edges[i]->nodes[1];
+
+                    if(std::find(closed.begin(), closed.end(), neighbour->getData()) != closed.end())
+                    {
+                        continue;
+                    }
+
+                    double tempValorG = valorG[current] + currentNode->edges[i]->getData();
+
+
+                    if(std::find(open.begin(), open.end(), neighbour->getData()) == open.end())
+                    {
+                        open.push_back(neighbour->getData());
+                    }
+
+                    else if (tempValorG >= valorG[neighbour->getData()])
+                    {
+                        continue;
+                    }            
+
+                    cameFrom[neighbour->getData()] = current;
+                    valorG[neighbour->getData()] = tempValorG;
+                    valorF[neighbour->getData()] = valorG[neighbour->getData()] + heuristic[neighbour->getData()];         
+
+                }
+
+            }
+
 
         }
 
@@ -1195,7 +1285,26 @@ class Graph {
             }
         }
 
+        N getKeywithMin(map<N,double> valorF, vector<N> open)
+        {
+            if (open.size() == 0)
+                throw "ERROR";
 
+
+            N min = valorF[open[0]];
+            N key = open[0]; 
+
+            for(int i = 1; i < open.size(); i++)
+            {
+                if(valorF[open[i]] < min)
+                {
+                    min = valorF[open[i]];
+                    key = open[i];
+                }
+
+            }
+            return key;
+        }
 
 
 
